@@ -53,6 +53,20 @@ input, select, textarea { font-family: inherit; font-size: 16px; }
 .app-header h1 { font-size: 19px; margin: 0; }
 .app-header .sub { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
 
+/* 同期ステータスのバッジ */
+.sync-badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+.sync-badge[hidden] { display: none; }
+.sync-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.sync-badge.online { color: #2E9E6B; background: #E5F6EC; }
+.sync-badge.offline { color: #C97A1B; background: #FFF4E8; }
+.sync-badge.connecting { color: #7D8AA0; background: #EEF1F6; }
+
+/* 共有カードの中身 */
+.share-status { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.share-link-box { display: flex; gap: 8px; margin: 10px 0; }
+.share-link-box input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: 12px; background: #fff; color: var(--muted); }
+.code-pill { font-family: ui-monospace, monospace; font-size: 11px; background: var(--bg); padding: 2px 7px; border-radius: 6px; color: var(--muted); word-break: break-all; }
+
 /* ---- 画面 ---- */
 .view { display: none; padding: 4px 16px 24px; animation: fade .18s ease; }
 .view.active { display: block; }

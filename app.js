@@ -476,6 +476,7 @@
     $('#remInterval').value = String(s.reminders.toiletIntervalMin);
     renderMedMaster();
     updateNotifStatus();
+    renderShareCard();
   }
 
   function renderMedMaster() {
@@ -494,6 +495,127 @@
     s.reminders.toilet = $('#remToilet').checked;
     s.reminders.toiletIntervalMin = parseInt($('#remInterval').value, 10);
     Store.saveSettings(s);
+  }
+
+  // ===================================================================
+  // 家族共有（クラウド）
+  // ===================================================================
+  function renderShareCard() {
+    const card = $('#shareCard');
+    if (!card) return;
+    if (!Store.cloud.isConfigured()) {
+      card.innerHTML = `
+        <p class="hint">いまは <b>この端末だけ</b> に記録が保存されています。家族みんなで同じ記録を見るには共有をオンにします。</p>
+        <button class="btn" id="shareStart">家族共有を始める</button>
+        <button class="btn ghost sm" id="shareJoinManual" style="margin-top:8px">共有コードで参加する</button>
+        <p class="hint">※ 最初に一度だけ Supabase（無料）の準備が必要です。</p>`;
+      $('#shareStart').onclick = shareStartFlow;
+      $('#shareJoinManual').onclick = shareJoinFlow;
+    } else {
+      const st = Store.getStatus();
+      const label = st === 'online' ? '✅ 共有オン（リアルタイム同期）'
+        : st === 'connecting' ? '接続中…'
+        : '⚠️ オフライン（つながると自動で同期します）';
+      const link = Store.cloud.shareLink();
+      const pend = Store.cloud.pendingCount();
+      card.innerHTML = `
+        <div class="share-status">${label}</div>
+        ${pend ? `<p class="hint">未送信の記録 ${pend} 件（オンライン復帰時に送信）</p>` : ''}
+        <p class="hint">このリンクを家族に送ると、タップだけで同じ記録に参加できます。</p>
+        <div class="share-link-box"><input id="shareLinkInput" readonly value="${esc(link)}"><button class="btn sm" id="copyLink">コピー</button></div>
+        <p class="hint">世帯コード：<span class="code-pill">${esc(Store.cloud.getConfig().household)}</span></p>
+        <button class="btn danger" id="shareOff" style="margin-top:6px">共有を解除（この端末をローカルに戻す）</button>`;
+      $('#copyLink').onclick = () => copyText(link);
+      $('#shareOff').onclick = () => {
+        if (!confirm('この端末を共有から外します。記録は端末に残ります。よろしいですか？')) return;
+        Store.cloud.disconnect(); renderSettings();
+      };
+    }
+  }
+
+  function shareStartFlow() {
+    openSheet(`
+      <h3>🔗 家族共有を始める</h3>
+      <p class="hint">Supabase で作ったプロジェクトの「Settings › API」から<br>Project URL と <b>anon public</b> キーをコピペします。</p>
+      <div class="field"><label>Project URL</label><input id="cfUrl" type="url" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field"><label>anon public キー</label><input id="cfKey" type="text" placeholder="eyJ..."></div>
+      <button class="btn" id="cfCreate">共有を開始（この端末の記録をアップ）</button>
+      <p class="hint">今この端末にある記録がクラウドへ送られ、共有の元になります。</p>`);
+    $('#cfCreate').onclick = async () => {
+      const url = $('#cfUrl').value.trim(), key = $('#cfKey').value.trim();
+      if (!url || !key) return;
+      const btn = $('#cfCreate'); btn.disabled = true; btn.textContent = '接続中…';
+      try {
+        await Store.cloud.create(url, key);
+        closeSheet(); renderSettings(); showToast('家族共有を開始しました 🐾');
+      } catch (e) {
+        btn.disabled = false; btn.textContent = '共有を開始（この端末の記録をアップ）';
+        showToast('接続に失敗：' + (e.message || 'URL/キーを確認してください'));
+      }
+    };
+  }
+
+  function shareJoinFlow() {
+    openSheet(`
+      <h3>🔗 共有コードで参加</h3>
+      <p class="hint">オーナーから受け取った3つを入力します。<br>（共有リンクをタップできるならそちらが簡単です）</p>
+      <div class="field"><label>Project URL</label><input id="jUrl" type="url" placeholder="https://xxxx.supabase.co"></div>
+      <div class="field"><label>anon public キー</label><input id="jKey" type="text" placeholder="eyJ..."></div>
+      <div class="field"><label>世帯コード</label><input id="jCode" type="text" placeholder="h-..."></div>
+      <button class="btn danger" id="jJoin">参加する（この端末の記録は置き換わります）</button>`);
+    $('#jJoin').onclick = async () => {
+      const url = $('#jUrl').value.trim(), key = $('#jKey').value.trim(), code = $('#jCode').value.trim();
+      if (!url || !key || !code) return;
+      const btn = $('#jJoin'); btn.disabled = true; btn.textContent = '参加中…';
+      try {
+        await Store.cloud.join(url, key, code);
+        closeSheet(); renderSettings(); renderActive(); showToast('参加しました 🐾');
+      } catch (e) {
+        btn.disabled = false; btn.textContent = '参加する（この端末の記録は置き換わります）';
+        showToast('参加に失敗：' + (e.message || '入力を確認してください'));
+      }
+    };
+  }
+
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(() => showToast('コピーしました'), fallbackCopy);
+    } else fallbackCopy();
+    function fallbackCopy() {
+      const i = $('#shareLinkInput'); if (!i) return;
+      i.focus(); i.select();
+      try { document.execCommand('copy'); showToast('コピーしました'); }
+      catch (e) { showToast('リンクを長押ししてコピーしてください'); }
+    }
+  }
+
+  // 同期ステータスのバッジ
+  function updateSyncBadge(s) {
+    const el = $('#syncBadge');
+    if (!el) return;
+    if (s === 'local') { el.hidden = true; return; }
+    el.hidden = false;
+    el.className = 'sync-badge ' + s;
+    el.textContent = s === 'online' ? '共有オン' : s === 'connecting' ? '接続中…' : 'オフライン';
+  }
+
+  // クラウドの起動・共有リンク参加の処理
+  async function bootstrapCloud() {
+    const m = location.hash.match(/^#join=(.+)$/);
+    if (m) {
+      history.replaceState(null, '', location.pathname + location.search);
+      try {
+        const c = Store.cloud.decodeLink(m[1]);
+        if (confirm('家族の共有に参加します。\nこの端末の既存の記録はクラウドの記録に置き換わります。\n（必要なら先に設定からバックアップを）\n\n参加しますか？')) {
+          showToast('参加中…');
+          await Store.cloud.join(c.url, c.anonKey, c.household);
+          showToast('家族共有に参加しました 🐾');
+          renderActive();
+          return;
+        }
+      } catch (e) { showToast('共有リンクの読み込みに失敗しました'); }
+    }
+    await Store.init();
   }
 
   // ===================================================================
@@ -630,6 +752,17 @@
     if (active === 'records') renderRecords();
   }
 
+  // 他端末の変更(realtime)で現在の画面を丸ごと再描画
+  function renderActive() {
+    renderHeader();
+    const v = $('.view.active'); if (!v) return;
+    const name = v.id.replace('view-', '');
+    if (name === 'home') renderHome();
+    else if (name === 'routine') renderRoutine();
+    else if (name === 'records') renderRecords();
+    else if (name === 'settings') renderSettings();
+  }
+
   // HTMLエスケープ
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
@@ -736,12 +869,19 @@
       navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('SW登録失敗', e));
     }
 
+    // クラウド同期：状態バッジと、他端末の変更での再描画を結線
+    Store.onStatus(updateSyncBadge);
+    Store.onChange(renderActive);
+
+    // 初期画面（まずローカルキャッシュで即描画）
+    nav('home');
+
+    // クラウド接続（共有リンク経由の参加もここで処理。完了すれば onChange で再描画）
+    bootstrapCloud();
+
     // リマインド開始
     setInterval(reminderTick, 30000);
     setTimeout(reminderTick, 3000);
-
-    // 初期画面
-    nav('home');
 
     // 日付が変わったらホーム更新（経過時間など）
     setInterval(() => { if ($('.view.active').id === 'view-home') renderHome(); }, 60000);

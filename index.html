@@ -20,6 +20,7 @@
       <h1 id="petName">ハンナ</h1>
       <div class="sub" id="petAge">生後―</div>
     </div>
+    <div id="syncBadge" class="sync-badge" hidden></div>
   </header>
 
   <!-- ================= ホーム ================= -->
@@ -82,6 +83,9 @@
       <button class="btn sm" id="saveProfile">保存</button>
     </div>
 
+    <div class="section-title">家族共有</div>
+    <div class="card" id="shareCard"></div>
+
     <div class="section-title">通知</div>
     <div class="card">
       <div class="row">
@@ -136,6 +140,7 @@
   <!-- トースト -->
   <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAction" hidden></button></div>
 
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="./store.js"></script>
   <script src="./app.js"></script>
 </body>

@@ -2,7 +2,7 @@
  * 役割: オフラインキャッシュ(アプリの殻を端末に保存) + 通知の表示窓口。
  * データ(記録)はキャッシュしない。記録は localStorage に入る。
  */
-const CACHE = 'hanna-v1';
+const CACHE = 'hanna-v2';
 const ASSETS = [
   './',
   './index.html',
