@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>ハンナ - お世話手帳</title>
+  <meta name="theme-color" content="#E0A878" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ハンナ" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="avatar"><img src="./icons/icon.svg" alt="ハンナ" /></div>
+    <div>
+      <h1 id="petName">ハンナ</h1>
+      <div class="sub" id="petAge">生後―</div>
+    </div>
+  </header>
+
+  <!-- ================= ホーム ================= -->
+  <main id="view-home" class="view active">
+    <div id="notifBanner" class="banner" style="display:none">
+      <span>🔔</span>
+      <div>
+        通知を許可すると、ごはんやトイレの時間にお知らせできます。
+        <div style="margin-top:6px"><button id="enableNotif">通知を許可する</button></div>
+      </div>
+    </div>
+
+    <div class="status-grid" id="statusGrid"></div>
+
+    <div class="section-title">記録する</div>
+    <div class="quick-grid">
+      <button class="qbtn pee"    data-quick="pee"><span class="e">💧</span>おしっこ</button>
+      <button class="qbtn poop"   data-quick="poop"><span class="e">💩</span>うんち</button>
+      <button class="qbtn meal"   data-quick="meal"><span class="e">🍚</span>ごはん</button>
+      <button class="qbtn weight" data-quick="weight"><span class="e">⚖️</span>体重</button>
+      <button class="qbtn med"    data-quick="med"><span class="e">💊</span>くすり</button>
+      <button class="qbtn vet"    data-quick="vet"><span class="e">🏥</span>通院</button>
+    </div>
+
+    <div class="section-title">今日のきろく</div>
+    <div class="timeline" id="todayTimeline"></div>
+  </main>
+
+  <!-- ================= ルーティン ================= -->
+  <main id="view-routine" class="view">
+    <div class="section-title">今日のルーティン <span id="routineProgress" style="float:right"></span></div>
+    <div class="routine-list" id="routineList"></div>
+    <p class="hint">時刻をタップで編集できます。チェックは毎日0時にリセットされます。<br>月齢に合わせて自由に組み替えてください（生後3〜4ヶ月でごはんは3回のままが目安）。</p>
+    <button class="btn ghost" id="addRoutine" style="margin-top:8px">＋ 予定を追加</button>
+  </main>
+
+  <!-- ================= 記録 ================= -->
+  <main id="view-records" class="view">
+    <div class="section-title">体重の記録</div>
+    <div class="card">
+      <svg class="chart" id="weightChart" viewBox="0 0 320 160" preserveAspectRatio="none"></svg>
+      <div id="weightInfo" class="hint" style="text-align:center"></div>
+    </div>
+
+    <div class="section-title">通院・ワクチン</div>
+    <div id="vetList" class="timeline"></div>
+
+    <div class="section-title">きろく一覧</div>
+    <div class="chips" id="filterChips"></div>
+    <div class="timeline" id="historyTimeline"></div>
+  </main>
+
+  <!-- ================= 設定 ================= -->
+  <main id="view-settings" class="view">
+    <div class="section-title">ハンナのプロフィール</div>
+    <div class="card">
+      <div class="field"><label>名前</label><input id="setName" type="text" /></div>
+      <div class="field"><label>誕生日</label><input id="setBirthday" type="date" /></div>
+      <div class="field"><label>お迎え日</label><input id="setArrival" type="date" /></div>
+      <button class="btn sm" id="saveProfile">保存</button>
+    </div>
+
+    <div class="section-title">通知</div>
+    <div class="card">
+      <div class="row">
+        <div><div class="r-label">ルーティンのお知らせ</div><div class="r-desc">予定の時刻にお知らせ</div></div>
+        <label class="switch"><input type="checkbox" id="remRoutine"><span class="track"></span></label>
+      </div>
+      <div class="row">
+        <div><div class="r-label">トイレの間隔お知らせ</div><div class="r-desc">前回から時間が空いたら</div></div>
+        <label class="switch"><input type="checkbox" id="remToilet"><span class="track"></span></label>
+      </div>
+      <div class="row">
+        <div><div class="r-label">トイレ間隔</div><div class="r-desc">何分空いたら知らせるか</div></div>
+        <select id="remInterval">
+          <option value="60">60分</option>
+          <option value="90">90分</option>
+          <option value="120">120分</option>
+          <option value="180">180分</option>
+        </select>
+      </div>
+      <p class="hint" id="notifStatus"></p>
+    </div>
+
+    <div class="section-title">薬・サプリの登録</div>
+    <div class="card">
+      <div id="medMaster"></div>
+      <button class="btn sm ghost" id="addMed" style="margin-top:8px">＋ 薬・サプリを追加</button>
+    </div>
+
+    <div class="section-title">データ</div>
+    <div class="card">
+      <p class="hint">記録はこの端末の中だけに保存されています（まだ家族共有はオフ）。<br>機種変更や共有のために、バックアップを書き出せます。</p>
+      <button class="btn ghost" id="exportData" style="margin-bottom:8px">バックアップを書き出す</button>
+      <button class="btn ghost" id="importData" style="margin-bottom:8px">バックアップを読み込む</button>
+      <input type="file" id="importFile" accept="application/json" hidden />
+      <button class="btn danger" id="resetData">すべての記録を消す</button>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:14px">ハンナ お世話手帳 v1（ローカル版）</p>
+  </main>
+
+  <!-- ================= ボトムナビ ================= -->
+  <nav class="nav">
+    <button data-nav="home" class="on"><span class="ni">🏠</span>ホーム</button>
+    <button data-nav="routine"><span class="ni">⏰</span>ルーティン</button>
+    <button data-nav="records"><span class="ni">📖</span>きろく</button>
+    <button data-nav="settings"><span class="ni">⚙️</span>設定</button>
+  </nav>
+
+  <!-- ボトムシート -->
+  <div class="sheet-mask" id="sheetMask"></div>
+  <div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+
+  <!-- トースト -->
+  <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastAction" hidden></button></div>
+
+  <script src="./store.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

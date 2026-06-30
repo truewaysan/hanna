@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4D9BE"/>
+      <stop offset="1" stop-color="#E0A878"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- poodle face -->
+  <g transform="translate(256 268)">
+    <!-- ears (fluffy) -->
+    <circle cx="-150" cy="-10" r="78" fill="#8B5E3C"/>
+    <circle cx="150" cy="-10" r="78" fill="#8B5E3C"/>
+    <!-- head fluff -->
+    <circle cx="0" cy="-120" r="70" fill="#A9743F"/>
+    <circle cx="-58" cy="-92" r="52" fill="#A9743F"/>
+    <circle cx="58" cy="-92" r="52" fill="#A9743F"/>
+    <!-- face -->
+    <ellipse cx="0" cy="-6" rx="118" ry="110" fill="#C68B53"/>
+    <ellipse cx="0" cy="44" rx="86" ry="74" fill="#F3E2CC"/>
+    <!-- eyes -->
+    <circle cx="-44" cy="-6" r="17" fill="#3A2A1C"/>
+    <circle cx="44" cy="-6" r="17" fill="#3A2A1C"/>
+    <circle cx="-38" cy="-12" r="5" fill="#fff"/>
+    <circle cx="50" cy="-12" r="5" fill="#fff"/>
+    <!-- nose -->
+    <ellipse cx="0" cy="34" rx="22" ry="16" fill="#3A2A1C"/>
+    <!-- mouth -->
+    <path d="M0 50 Q-22 78 -42 60 M0 50 Q22 78 42 60" stroke="#7A5733" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <!-- tongue -->
+    <path d="M-12 64 Q0 96 12 64 Z" fill="#E8788A"/>
+  </g>
+</svg>

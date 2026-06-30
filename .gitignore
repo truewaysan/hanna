@@ -1,0 +1,11 @@
+# 接続情報・APIキーはここに分離（リポジトリに含めない）
+config.local.js
+*.local.js
+.env
+.env.*
+
+# OS
+.DS_Store
+
+# バックアップ書き出し
+hanna-backup-*.json
